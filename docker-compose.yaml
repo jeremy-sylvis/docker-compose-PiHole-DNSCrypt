@@ -1,49 +1,52 @@
 version: "3.5"
 
-services:
+networks:
+  dns_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "${NETWORK_IPV4_CIDR:-172.100.1.0/24}"
+        - subnet: "${NETWORK_IPV6_CIDR:-2001:3984:3989::/64}"
 
-  home_dnscrypt:
-    build: ./dnscrypt
-    image: dnscrypt-custom:v2.1.5
-    container_name: dnscrypt
+volumes:
+  - pd-dnscrypt:
+  - pd-pihole:
+
+services:
+  pd_dnscrypt:
+    image: jedisct1/dnscrypt-server:latest
+    container_name: pd_dnscrypt
     networks:
       dns_net:
-        ipv4_address: 10.53.53.100
-        ipv6_address: 2001:3984:3989::10
+        ipv4_address: "${DNSCRYPT_IPV4_ADDR:-172.100.1.1}"
+        ipv6_address: "${DNSCRYPT_IPV6_ADDR:-2001:3984:3989::10}"
+    environment:
+      TZ: "${TIMEZONE:-America/Chicago}"
+    volumes:
+      - 'pd-dnscrypt/keys:/opt/encrypted-dns/etc/keys'
     restart: unless-stopped
 
-
-  home_pihole:
-    container_name: pihole
-    image: pihole/pihole:2023.05.2
+  pd_pihole:
+    container_name: pd_pihole
+    image: pihole/pihole:latest
     networks:
       dns_net:
-        ipv4_address: 10.53.53.200
-        ipv6_address: 2001:3984:3989::20
+        ipv4_address: "${PIHOLE_IPV4_ADDR:-172.100.1.2}"
+        ipv6_address: "${DNSCRYPT_IPV6_ADDR:-2001:3984:3989::20}"
     ports:
       - "53:53/tcp"
       - "53:53/udp"
       #- "80:80/tcp"
       #- "443:443/tcp"
     environment:
-      TZ: 'Europe/Paris'
-      WEBPASSWORD: 'strong_password_(G3fvca#AZDEFR€3µ.d:qdMaq-fe' # to change manually, plus the web admin interface is not exposed
-      PIHOLE_DNS_: 10.53.53.100#5353;2001:3984:3989::20#53530
+      TZ: "${TIMEZONE:-America/Chicago}"
+      WEBPASSWORD: "${PIHOLE_WEB_ADMIN_PASSWORD:?}"
+      PIHOLE_DNS_: "pd_dnscrypt#5353;${DNSCRYPT_IPV6_ADDR:-2001:3984:3989::20}#53530"
     dns:
       - 127.0.0.1
     volumes:
-       - './etc-pihole/:/etc/pihole/'
-       - './etc-dnsmasq.d/:/etc/dnsmasq.d/'
+      - 'pd-pihole/config/pihole/:/etc/pihole/'
+      - 'pd-pihole/config/dnsmasq.d/:/etc/dnsmasq.d/'
     restart: unless-stopped
     depends_on:
-      - home_dnscrypt
-
-
-
-networks:
-  dns_net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: "10.53.53.0/24"
-        - subnet: "2001:3984:3989::/64"
+      - pd_dnscrypt
