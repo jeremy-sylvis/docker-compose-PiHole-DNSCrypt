@@ -24,6 +24,9 @@ services:
       TZ: "${TIMEZONE:-America/Chicago}"
     volumes:
       - pd-dnscrypt:/opt/encrypted-dns/etc/keys
+    # First run
+    command: [ 'init', '-N', 'sylvis.net', '-E', 'pd_dnscrypt:443' ]
+    # Subsequent runs can use the default 'start' command
     restart: unless-stopped
 
   pd_pihole:
