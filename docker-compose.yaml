@@ -23,7 +23,7 @@ services:
     environment:
       TZ: "${TIMEZONE:-America/Chicago}"
     volumes:
-      - pd-dnscrypt/keys:/opt/encrypted-dns/etc/keys
+      - pd-dnscrypt:/opt/encrypted-dns/etc/keys
     restart: unless-stopped
 
   pd_pihole:
@@ -45,8 +45,8 @@ services:
     dns:
       - 127.0.0.1
     volumes:
-      - pd-pihole/config/pihole/:/etc/pihole/
-      - pd-pihole/config/dnsmasq.d/:/etc/dnsmasq.d/
+      - pd-pihole:/etc/pihole
+      #- pd-pihole/config/dnsmasq.d/:/etc/dnsmasq.d/
     restart: unless-stopped
     depends_on:
       - pd_dnscrypt
