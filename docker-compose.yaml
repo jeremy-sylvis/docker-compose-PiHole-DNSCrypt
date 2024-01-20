@@ -25,7 +25,8 @@ services:
     volumes:
       - pd-dnscrypt:/opt/encrypted-dns/etc/keys
     # First run
-    args: [ 'init', '-N', 'sylvis.net', '-E', '192.168.1.42:443' ]
+    #command: [ 'init', '-N', 'sylvis.net', '-E', '192.168.1.42:443' ]
+    command: init -N sylvis.net -E 192.168.1.42:443
     # Subsequent runs can use the default 'start' command
     restart: unless-stopped
 
