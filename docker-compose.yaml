@@ -9,8 +9,8 @@ networks:
         - subnet: "${NETWORK_IPV6_CIDR:-2001:3984:3989::/64}"
 
 volumes:
-  - pd-dnscrypt:
-  - pd-pihole:
+  pd-dnscrypt:
+  pd-pihole:
 
 services:
   pd_dnscrypt:
@@ -23,7 +23,7 @@ services:
     environment:
       TZ: "${TIMEZONE:-America/Chicago}"
     volumes:
-      - 'pd-dnscrypt/keys:/opt/encrypted-dns/etc/keys'
+      - pd-dnscrypt/keys:/opt/encrypted-dns/etc/keys
     restart: unless-stopped
 
   pd_pihole:
@@ -45,8 +45,8 @@ services:
     dns:
       - 127.0.0.1
     volumes:
-      - 'pd-pihole/config/pihole/:/etc/pihole/'
-      - 'pd-pihole/config/dnsmasq.d/:/etc/dnsmasq.d/'
+      - pd-pihole/config/pihole/:/etc/pihole/
+      - pd-pihole/config/dnsmasq.d/:/etc/dnsmasq.d/
     restart: unless-stopped
     depends_on:
       - pd_dnscrypt
